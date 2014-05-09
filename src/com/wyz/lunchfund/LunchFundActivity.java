@@ -11,7 +11,7 @@ import java.util.*;
 
 public class LunchFundActivity extends Activity
 {
-	private PersistentState pstate;
+	private PersistentState pstate = new PersistentState();
 	Set<String> checkedPeople = new HashSet<String>();
 
 	/** Called when the activity is first created. */
@@ -37,11 +37,12 @@ public class LunchFundActivity extends Activity
 		button = (Button)findViewById(R.id.email);
 		button.setEnabled(checkedPeople.size() > 0);
 
-		((LinearLayout)findViewById(R.id.peoplelayout)).removeAllViews();
+		LinearLayout peoplelayout = (LinearLayout)findViewById(R.id.peoplelayout);
+		peoplelayout.removeAllViews();
 		for (PersistentState.Person person : pstate.listPeople()) {
 			final String name = person.name;
 			CheckBox cbox = new CheckBox(this);
-			cbox.setText(name + " (" + person.balance + ")");
+			cbox.setText(name + " (" + (person.balance / 100.0) + ")");
 			cbox.setChecked(checkedPeople.contains(name));
 			cbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 					public void onCheckedChanged (CompoundButton buttonView, boolean isChecked)
@@ -53,6 +54,7 @@ public class LunchFundActivity extends Activity
 						redraw();
 					}
 				});
+			peoplelayout.addView(cbox);
 		}
 
 		((TextView)findViewById(R.id.logview)).setText(pstate.printHistory());
