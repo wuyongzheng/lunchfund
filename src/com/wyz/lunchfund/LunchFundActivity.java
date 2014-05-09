@@ -3,6 +3,7 @@ package com.wyz.lunchfund;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.*;
@@ -22,6 +23,12 @@ public class LunchFundActivity extends Activity
 		setContentView(R.layout.main);
 	}
 
+	public void onConfigurationChanged (Configuration newConfig)
+	{
+		super.onConfigurationChanged(newConfig);
+		redraw();
+	}
+
 	private void redraw ()
 	{
 		Button button;
@@ -34,8 +41,6 @@ public class LunchFundActivity extends Activity
 		button.setEnabled(true);
 		button = (Button)findViewById(R.id.undo);
 		button.setEnabled(pstate.hasHistory());
-		button = (Button)findViewById(R.id.email);
-		button.setEnabled(checkedPeople.size() > 0);
 
 		LinearLayout peoplelayout = (LinearLayout)findViewById(R.id.peoplelayout);
 		peoplelayout.removeAllViews();
