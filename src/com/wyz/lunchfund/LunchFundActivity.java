@@ -21,6 +21,7 @@ public class LunchFundActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		redraw();
 	}
 
 	public void onConfigurationChanged (Configuration newConfig)
@@ -83,8 +84,12 @@ public class LunchFundActivity extends Activity
 			});
 		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					onLunch2();
+					if (lunchPayer != null)
+						onLunch2();
 				}
+			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
 			});
 		alert.show();
 	}
@@ -111,6 +116,9 @@ public class LunchFundActivity extends Activity
 					redraw();
 				}
 			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
+			});
 		alert.show();
 	}
 
@@ -132,8 +140,12 @@ public class LunchFundActivity extends Activity
 			});
 		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					onTransfer2();
+					if (transferFrom != -1)
+						onTransfer2();
 				}
+			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
 			});
 		alert.show();
 	}
@@ -149,8 +161,12 @@ public class LunchFundActivity extends Activity
 			});
 		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					onTransfer3();
+					if (transferTo != -1)
+						onTransfer3();
 				}
+			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
 			});
 		alert.show();
 	}
@@ -177,6 +193,9 @@ public class LunchFundActivity extends Activity
 							(int)Math.round(d * 100)));
 					redraw();
 				}
+			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
 			});
 		alert.show();
 	}

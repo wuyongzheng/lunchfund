@@ -184,7 +184,7 @@ public class PersistentState
 		public String save () {
 			StringBuilder sb = new StringBuilder().append("lunch\t").append(payer).append("\t" + amount);
 			for (String eater : eaters)
-				sb.append(eater).append("\t");
+				sb.append("\t").append(eater);
 			return sb.toString();
 		}
 	}
