@@ -84,6 +84,7 @@ public class PersistentState
 		public abstract void apply (PersistentState pstate);
 		public abstract void undo (PersistentState pstate);
 		public abstract String save ();
+		public abstract String description ();
 	}
 
 	public static class AddTransaction extends Transaction {
@@ -107,6 +108,7 @@ public class PersistentState
 			pstate.people.remove(name);
 		}
 		public String save () {return "add\t" + name + "\t" + email;}
+		public String description () {return "add " + name + " <" + email + ">";}
 	}
 
 	public static class DeleteTransaction extends Transaction {
@@ -130,6 +132,7 @@ public class PersistentState
 			pstate.people.put(name, new Person(name, email, 0));
 		}
 		public String save () {return "delete\t" + name + "\t" + email;}
+		public String description () {return "delete " + name + " <" + email + ">";}
 	}
 
 	public static class TransferTransaction extends Transaction {
@@ -155,6 +158,7 @@ public class PersistentState
 			pstate.people.get(to).balance += amount;
 		}
 		public String save () {return "transfer\t" + from + "\t" + to + "\t" + amount;}
+		public String description () {return from + " gave $" + (amount/100.0) + " to " + to;}
 	}
 
 	public static class LunchTransaction extends Transaction {
@@ -187,6 +191,15 @@ public class PersistentState
 				sb.append("\t").append(eater);
 			return sb.toString();
 		}
+		public String description () {
+			StringBuilder sb = new StringBuilder().append(payer).append(" payed $").append(amount/100.0).append(" for ");
+			for (int i = 0; i < eaters.length - 2; i ++)
+				sb.append(eaters[i]).append(", ");
+			if (eaters.length >= 2)
+				sb.append(eaters[eaters.length - 2]).append(" and ");
+			sb.append(eaters[eaters.length - 1]);
+			return sb.toString();
+		}
 	}
 
 	public boolean hasHistory ()
@@ -204,11 +217,15 @@ public class PersistentState
 		return people.keySet().toArray(new String[people.size()]);
 	}
 
-	public String printHistory ()
+	public String showHistory (boolean reverse)
 	{
 		StringBuilder sb = new StringBuilder();
-		for (Transaction trans : history)
-			sb.append(trans.save() + "\n");
+		if (reverse)
+			for (int i = history.size() - 1; i >= 0; i --)
+				sb.append(history.get(i).description() + "\n");
+		else
+			for (Transaction trans : history)
+				sb.append(trans.description() + "\n");
 		return sb.toString();
 	}
 

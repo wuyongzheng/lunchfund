@@ -63,7 +63,7 @@ public class LunchFundActivity extends Activity
 			peoplelayout.addView(cbox);
 		}
 
-		((TextView)findViewById(R.id.logview)).setText(pstate.printHistory());
+		((TextView)findViewById(R.id.logview)).setText(pstate.showHistory(true));
 	}
 
 	private String lunchPayer;
