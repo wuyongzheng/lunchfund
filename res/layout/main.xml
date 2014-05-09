@@ -1,13 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<TextView  
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="Hello World, LunchFundActivity"
-    />
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+		<Button
+			android:id="@+id/lunch"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Lunch"
+			android:onClick="onLunch"/>
+		<Button
+			android:id="@+id/transfer"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Transfer"
+			android:onClick="onTransfer"/>
+		<Button
+			android:id="@+id/addperson"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Add"
+			android:onClick="onAdd"/>
+		<Button
+			android:id="@+id/undo"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Undo"
+			android:onClick="onUndo"/>
+		<Button
+			android:id="@+id/email"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:text="Email"
+			android:onClick="onEmail"/>
+	</LinearLayout>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:id="@+id/peoplelayout"
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+	</LinearLayout>
+	<TextView
+		android:id="@+id/logview"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content" />
 </LinearLayout>
-
