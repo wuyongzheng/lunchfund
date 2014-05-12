@@ -9,6 +9,7 @@ public class PersistentState
 	private SortedMap<String, Person> people = new TreeMap<String, Person>();
 	private Stack<Transaction> history = new Stack<Transaction>();
 	private Stack<Transaction> undoHistory = new Stack<Transaction>();
+	private boolean modified = false;
 
 	public static PersistentState load (String text)
 	{
@@ -48,7 +49,17 @@ public class PersistentState
 		for (Transaction trans : history) {
 			writer.println(trans.save());
 		}
-		writer.flush();
+		writer.close();
+	}
+
+	public boolean isModified ()
+	{
+		return modified;
+	}
+
+	public void clearModified ()
+	{
+		modified = false;
 	}
 
 	private static Transaction loadTransaction (String line)
@@ -234,6 +245,7 @@ public class PersistentState
 		undoHistory.clear();
 		trans.apply(this);
 		history.push(trans);
+		modified = true;
 	}
 
 	public void undo ()
@@ -243,6 +255,7 @@ public class PersistentState
 		Transaction trans = history.pop();
 		trans.undo(this);
 		undoHistory.push(trans);
+		modified = true;
 	}
 
 	public void redo ()
@@ -252,5 +265,6 @@ public class PersistentState
 		Transaction trans = undoHistory.pop();
 		trans.apply(this);
 		history.push(trans);
+		modified = true;
 	}
 }

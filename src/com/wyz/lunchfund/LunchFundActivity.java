@@ -8,11 +8,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.*;
 import android.view.View;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class LunchFundActivity extends Activity
 {
-	private PersistentState pstate = new PersistentState();
+	private PersistentState pstate;
 	Set<String> checkedPeople = new HashSet<String>();
 
 	/** Called when the activity is first created. */
@@ -20,6 +24,17 @@ public class LunchFundActivity extends Activity
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		try {
+			pstate = PersistentState.load(new InputStreamReader(openFileInput("history.txt"), "UTF-8"));
+		} catch (FileNotFoundException x) {
+		} catch (UnsupportedEncodingException x) {
+			Log.e("LunchFundActivity", "onCreate", x);
+		}
+		if (pstate == null)
+			pstate = new PersistentState();
+		pstate.clearModified();
+
 		setContentView(R.layout.main);
 		redraw();
 	}
@@ -28,6 +43,19 @@ public class LunchFundActivity extends Activity
 	{
 		super.onConfigurationChanged(newConfig);
 		redraw();
+	}
+
+	protected void onPause ()
+	{
+		try {
+			if (pstate.isModified()) {
+				pstate.save(new OutputStreamWriter(openFileOutput("history.txt", MODE_PRIVATE), "UTF-8"));
+				pstate.clearModified();
+			}
+		} catch (Exception x) {
+			Log.e("LunchFundActivity", "onPause: save", x);
+		}
+		super.onPause();
 	}
 
 	private void redraw ()
