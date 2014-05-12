@@ -2,6 +2,7 @@ package com.wyz.lunchfund;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -230,9 +231,24 @@ public class LunchFundActivity extends Activity
 
 	public void onAddPerson (View view)
 	{
-		String name = "p" + new Random().nextInt(100);
-		pstate.apply(new PersistentState.AddTransaction(name, name + "@gmail.com"));
-		redraw();
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		alert.setTitle("Add New Person");
+		alert.setView(getLayoutInflater().inflate(R.layout.addperson, null));
+		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					Dialog d = (Dialog)dialog;
+					String name = ((EditText)d.findViewById(R.id.newPersonName)).getText().toString().trim();
+					String email = ((EditText)d.findViewById(R.id.newPersonEmail)).getText().toString().trim();
+					if (name.length() == 0)
+						return;
+					pstate.apply(new PersistentState.AddTransaction(name, email));
+					redraw();
+				}
+			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
+			});
+		alert.show();
 	}
 
 	public void onUndo (View view)
