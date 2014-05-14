@@ -74,9 +74,9 @@ public class PersistentState
 		} else if (arr[1].equals("transfer")) {
 			return new TransferTransaction(date, arr[2], arr[3], Integer.parseInt(arr[4]));
 		} else if (arr[1].equals("lunch")) {
-			String [] eaters = new String [arr.length - 4];
-			System.arraycopy(arr, 4, eaters, 0, eaters.length);
-			return new LunchTransaction(date, arr[2], Integer.parseInt(arr[3]), eaters);
+			String [] eaters = new String [arr.length - 5];
+			System.arraycopy(arr, 5, eaters, 0, eaters.length);
+			return new LunchTransaction(date, arr[2], Integer.parseInt(arr[3]), arr[4], eaters);
 		} else {
 			throw new RuntimeException("unknown transaction " + arr[1]);
 		}
@@ -183,14 +183,16 @@ public class PersistentState
 	public static class LunchTransaction extends Transaction {
 		private String payer;
 		private int amount;
+		private String remarks;
 		private String [] eaters;
-		public LunchTransaction (long date, String payer, int amount, String [] eaters)
+		public LunchTransaction (long date, String payer, int amount, String remarks, String [] eaters)
 		{
 			this.date = date == 0 ? System.currentTimeMillis() : date;
 			if (eaters.length == 0 || amount <= 0)
 				throw new RuntimeException("Invalid parameter for LunchTransaction");
 			this.payer = payer;
 			this.amount = amount;
+			this.remarks = remarks.length() == 0 ? "nothing" : remarks;
 			this.eaters = eaters;
 		}
 		public void apply (PersistentState pstate)
@@ -206,7 +208,9 @@ public class PersistentState
 			pstate.people.get(payer).balance -= amount;
 		}
 		public String save () {
-			StringBuilder sb = new StringBuilder().append(date).append("\tlunch\t").append(payer).append("\t" + amount);
+			StringBuilder sb = new StringBuilder().
+				append(date).append("\tlunch\t").append(payer).
+				append("\t" + amount).append("\t" + remarks);
 			for (String eater : eaters)
 				sb.append("\t").append(eater);
 			return sb.toString();
@@ -219,6 +223,8 @@ public class PersistentState
 				sb.append(eaters[eaters.length - 2]).append(" and ");
 			sb.append(eaters[eaters.length - 1]);
 			sb.append(" on " + DateFormat.getDateInstance().format(new Date(date)));
+			if (!remarks.equals("nothing"))
+				sb.append(" (" + remarks + ")");
 			return sb.toString();
 		}
 	}

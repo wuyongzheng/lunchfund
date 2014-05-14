@@ -120,56 +120,41 @@ public class LunchFundActivity extends Activity
 		((TextView)findViewById(R.id.logview)).setText(pstate.showHistory(true));
 	}
 
-	private String lunchPayer;
-	private int lunchAmount;
 	public void onLunch (View view)
 	{
 		if (checkedPeople.size() == 0)
 			return;
-		final String [] people = pstate.listPeopleNames();
-		lunchPayer = null;
-		lunchAmount = 0;
-		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		alert.setTitle("Lunch 1/2: Who Paied?");
-		alert.setSingleChoiceItems(people, -1, new DialogInterface.OnClickListener() {
-				public void onClick (DialogInterface dialog, int which) {
-					lunchPayer = people[which];
-					dialog.dismiss();
-					onLunch2();
-				}
-			});
-/*		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					if (lunchPayer != null)
-						onLunch2();
-				}
-			});
-*/		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
-		alert.show();
-	}
 
-	public void onLunch2 ()
-	{
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		alert.setTitle("Lunch 2/2: How much in total?");
-		final EditText input = new EditText(this);
-		input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-		alert.setView(input);
+		alert.setTitle("Lunch");
+		View alertView = getLayoutInflater().inflate(R.layout.lunch, null);
+		String [] people = pstate.listPeopleNames();
+		String [] peoplePayer = new String [people.length + 1];
+		peoplePayer[0] = "Who Paied?";
+		System.arraycopy(people, 0, peoplePayer, 1, people.length);
+		final Spinner spinnerPayer = (Spinner)alertView.findViewById(R.id.lunchPayer);
+		spinnerPayer.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, peoplePayer));
+		spinnerPayer.setSelection(0);
+		alert.setView(alertView);
+
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					String value = input.getText().toString();
+					String payer = spinnerPayer.getSelectedItem().toString();
+					if (payer.equals("Who Paied?"))
+						return;
+					Dialog thedialog = (Dialog)dialog;
+					String remarks = ((EditText)thedialog.findViewById(R.id.lunchRemarks)).getText().toString().trim();
+					String amountString = ((EditText)thedialog.findViewById(R.id.lunchAmount)).getText().toString().trim();
 					double d = 0;
 					try {
-						d = Double.parseDouble(value);
+						d = Double.parseDouble(amountString);
 					} catch (Exception x) {
-						Log.e("LunchFund", "onLunch2() ", x);
+						Log.e("LunchFund", "onTransfer() ", x);
 					}
 					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
 						return;
 					pstate.apply(new PersistentState.LunchTransaction(
-							0, lunchPayer, (int)Math.round(d * 100),
+							0, payer, (int)Math.round(d * 100), remarks,
 							checkedPeople.toArray(new String[checkedPeople.size()])));
 					redraw();
 				}
