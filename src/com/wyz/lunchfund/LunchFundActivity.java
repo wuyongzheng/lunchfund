@@ -151,75 +151,44 @@ public class LunchFundActivity extends Activity
 		alert.show();
 	}
 
-	private String [] transferPeople;
-	private int transferFrom;
-	private int transferTo;
-	private int transferAmount;
 	public void onTransfer (View view)
 	{
-		transferFrom = transferTo = -1;
-		transferAmount = 0;
-		transferPeople = pstate.listPeopleNames();
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		alert.setTitle("Transfer 1/3: From Who?");
-		alert.setSingleChoiceItems(transferPeople, -1, new DialogInterface.OnClickListener() {
-				public void onClick (DialogInterface dialog, int which) {
-					transferFrom = which;
-				}
-			});
-		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					if (transferFrom != -1)
-						onTransfer2();
-				}
-			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
-		alert.show();
-	}
+		alert.setTitle("Transfer Money");
+		View alertView = getLayoutInflater().inflate(R.layout.transfer, null);
+		String [] people = pstate.listPeopleNames();
+		String [] peopleFrom = new String [people.length + 1];
+		peopleFrom[0] = "From:";
+		System.arraycopy(people, 0, peopleFrom, 1, people.length);
+		final Spinner spinnerFrom = (Spinner)alertView.findViewById(R.id.transferFrom);
+		spinnerFrom.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, peopleFrom));
+		spinnerFrom.setSelection(0);
+		String [] peopleTo = new String [people.length + 1];
+		peopleTo[0] = "To:";
+		System.arraycopy(people, 0, peopleTo, 1, people.length);
+		final Spinner spinnerTo = (Spinner)alertView.findViewById(R.id.transferTo);
+		spinnerTo.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, peopleTo));
+		spinnerTo.setSelection(0);
+		final EditText amountEdit = (EditText)alertView.findViewById(R.id.transferAmount);
+		alert.setView(alertView);
 
-	public void onTransfer2 ()
-	{
-		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		alert.setTitle("Transfer 2/3: To Who?");
-		alert.setSingleChoiceItems(pstate.listPeopleNames(), -1, new DialogInterface.OnClickListener() {
-				public void onClick (DialogInterface dialog, int which) {
-					transferTo = which;
-				}
-			});
-		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					if (transferTo != -1)
-						onTransfer3();
-				}
-			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
-		alert.show();
-	}
-
-	public void onTransfer3 ()
-	{
-		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		alert.setTitle("Transfer 3/3: How Much?");
-		final EditText input = new EditText(this);
-		alert.setView(input);
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					String value = input.getText().toString();
+					String fromString = spinnerFrom.getSelectedItem().toString();
+					String toString = spinnerTo.getSelectedItem().toString();
+					if (fromString.equals("From:") || toString.equals("To:"))
+						return;
+					String amountString = amountEdit.getText().toString();
 					double d = 0;
 					try {
-						d = Double.parseDouble(value);
+						d = Double.parseDouble(amountString);
 					} catch (Exception x) {
-						Log.e("LunchFund", "onTransfer3() ", x);
+						Log.e("LunchFund", "onTransfer() ", x);
 					}
 					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
 						return;
 					pstate.apply(new PersistentState.TransferTransaction(
-							transferPeople[transferFrom], transferPeople[transferTo],
-							(int)Math.round(d * 100)));
+							fromString, toString, (int)Math.round(d * 100)));
 					redraw();
 				}
 			});
