@@ -169,7 +169,8 @@ public class LunchFundActivity extends Activity
 					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
 						return;
 					pstate.apply(new PersistentState.LunchTransaction(
-							lunchPayer, (int)Math.round(d * 100), checkedPeople.toArray(new String[checkedPeople.size()])));
+							0, lunchPayer, (int)Math.round(d * 100),
+							checkedPeople.toArray(new String[checkedPeople.size()])));
 					redraw();
 				}
 			});
@@ -216,7 +217,7 @@ public class LunchFundActivity extends Activity
 					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
 						return;
 					pstate.apply(new PersistentState.TransferTransaction(
-							fromString, toString, (int)Math.round(d * 100)));
+							0, fromString, toString, (int)Math.round(d * 100)));
 					redraw();
 				}
 			});
@@ -238,7 +239,7 @@ public class LunchFundActivity extends Activity
 					String email = ((EditText)d.findViewById(R.id.newPersonEmail)).getText().toString().trim();
 					if (name.length() == 0)
 						return;
-					pstate.apply(new PersistentState.AddTransaction(name, email));
+					pstate.apply(new PersistentState.AddTransaction(0, name, email));
 					redraw();
 				}
 			});
@@ -274,7 +275,7 @@ public class LunchFundActivity extends Activity
 		if (person == null || person.balance != 0) {
 			return; //TODO alert dialog
 		}
-		pstate.apply(new PersistentState.DeleteTransaction(person.name, person.email));
+		pstate.apply(new PersistentState.DeleteTransaction(0, person.name, person.email));
 		checkedPeople.clear();
 		redraw();
 	}

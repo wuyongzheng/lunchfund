@@ -1,8 +1,9 @@
 package com.wyz.lunchfund;
 
 import android.util.Log;
-import java.util.*;
 import java.io.*;
+import java.text.DateFormat;
+import java.util.*;
 
 public class PersistentState
 {
@@ -65,18 +66,19 @@ public class PersistentState
 	private static Transaction loadTransaction (String line)
 	{
 		String [] arr = line.split("\t");
-		if (arr[0].equals("add")) {
-			return new AddTransaction(arr[1], arr[2]);
-		} else if (arr[0].equals("delete")) {
-			return new DeleteTransaction(arr[1], arr[2]);
-		} else if (arr[0].equals("transfer")) {
-			return new TransferTransaction(arr[1], arr[2], Integer.parseInt(arr[3]));
-		} else if (arr[0].equals("lunch")) {
-			String [] eaters = new String [arr.length - 3];
-			System.arraycopy(arr, 3, eaters, 0, eaters.length);
-			return new LunchTransaction(arr[1], Integer.parseInt(arr[2]), eaters);
+		long date = Long.parseLong(arr[0]);
+		if (arr[1].equals("add")) {
+			return new AddTransaction(date, arr[2], arr[3]);
+		} else if (arr[1].equals("delete")) {
+			return new DeleteTransaction(date, arr[2], arr[3]);
+		} else if (arr[1].equals("transfer")) {
+			return new TransferTransaction(date, arr[2], arr[3], Integer.parseInt(arr[4]));
+		} else if (arr[1].equals("lunch")) {
+			String [] eaters = new String [arr.length - 4];
+			System.arraycopy(arr, 4, eaters, 0, eaters.length);
+			return new LunchTransaction(date, arr[2], Integer.parseInt(arr[3]), eaters);
 		} else {
-			throw new RuntimeException("unknown transaction " + arr[0]);
+			throw new RuntimeException("unknown transaction " + arr[1]);
 		}
 	}
 
@@ -92,6 +94,7 @@ public class PersistentState
 	}
 
 	public static abstract class Transaction {
+		protected long date; // Number of milliseconds since 1970 GMT. Same as Date.getTime() and System.currentTimeMillis()
 		public abstract void apply (PersistentState pstate);
 		public abstract void undo (PersistentState pstate);
 		public abstract String save ();
@@ -101,8 +104,9 @@ public class PersistentState
 	public static class AddTransaction extends Transaction {
 		private String name;
 		private String email;
-		public AddTransaction (String name, String email)
+		public AddTransaction (long date, String name, String email)
 		{
+			this.date = date == 0 ? System.currentTimeMillis() : date;
 			this.name = name;
 			this.email = email;
 		}
@@ -118,15 +122,16 @@ public class PersistentState
 				throw new RuntimeException("AddTransaction.undo(): no user " + name);
 			pstate.people.remove(name);
 		}
-		public String save () {return "add\t" + name + "\t" + email;}
+		public String save () {return date + "\tadd\t" + name + "\t" + email;}
 		public String description () {return "add " + name + " <" + email + ">";}
 	}
 
 	public static class DeleteTransaction extends Transaction {
 		private String name;
 		private String email;
-		public DeleteTransaction (String name, String email)
+		public DeleteTransaction (long date, String name, String email)
 		{
+			this.date = date == 0 ? System.currentTimeMillis() : date;
 			this.name = name;
 			this.email = email;
 		}
@@ -144,7 +149,7 @@ public class PersistentState
 				throw new RuntimeException("DeleteTransaction.undo(): exist user " + name);
 			pstate.people.put(name, new Person(name, email, 0));
 		}
-		public String save () {return "delete\t" + name + "\t" + email;}
+		public String save () {return date + "\tdelete\t" + name + "\t" + email;}
 		public String description () {return "delete " + name + " <" + email + ">";}
 	}
 
@@ -152,8 +157,9 @@ public class PersistentState
 		private String from;
 		private String to;
 		private int amount;
-		public TransferTransaction (String from, String to, int amount)
+		public TransferTransaction (long date, String from, String to, int amount)
 		{
+			this.date = date == 0 ? System.currentTimeMillis() : date;
 			if (from.equals(to) || amount <= 0)
 				throw new RuntimeException("Invalid parameter for TransferTransaction");
 			this.from = from;
@@ -170,16 +176,17 @@ public class PersistentState
 			pstate.people.get(from).balance -= amount;
 			pstate.people.get(to).balance += amount;
 		}
-		public String save () {return "transfer\t" + from + "\t" + to + "\t" + amount;}
-		public String description () {return from + " gave $" + (amount/100.0) + " to " + to;}
+		public String save () {return date + "\ttransfer\t" + from + "\t" + to + "\t" + amount;}
+		public String description () {return from + " gave $" + (amount/100.0) + " to " + to + " on " + DateFormat.getDateInstance().format(new Date(date));}
 	}
 
 	public static class LunchTransaction extends Transaction {
 		private String payer;
 		private int amount;
 		private String [] eaters;
-		public LunchTransaction (String payer, int amount, String [] eaters)
+		public LunchTransaction (long date, String payer, int amount, String [] eaters)
 		{
+			this.date = date == 0 ? System.currentTimeMillis() : date;
 			if (eaters.length == 0 || amount <= 0)
 				throw new RuntimeException("Invalid parameter for LunchTransaction");
 			this.payer = payer;
@@ -199,7 +206,7 @@ public class PersistentState
 			pstate.people.get(payer).balance -= amount;
 		}
 		public String save () {
-			StringBuilder sb = new StringBuilder().append("lunch\t").append(payer).append("\t" + amount);
+			StringBuilder sb = new StringBuilder().append(date).append("\tlunch\t").append(payer).append("\t" + amount);
 			for (String eater : eaters)
 				sb.append("\t").append(eater);
 			return sb.toString();
@@ -211,6 +218,7 @@ public class PersistentState
 			if (eaters.length >= 2)
 				sb.append(eaters[eaters.length - 2]).append(" and ");
 			sb.append(eaters[eaters.length - 1]);
+			sb.append(" on " + DateFormat.getDateInstance().format(new Date(date)));
 			return sb.toString();
 		}
 	}
