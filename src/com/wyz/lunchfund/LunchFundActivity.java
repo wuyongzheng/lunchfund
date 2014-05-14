@@ -102,7 +102,7 @@ public class LunchFundActivity extends Activity
 		for (PersistentState.Person person : pstate.listPeople()) {
 			final String name = person.name;
 			CheckBox cbox = new CheckBox(this);
-			cbox.setText(name + " (" + (person.balance / 100.0) + ")");
+			cbox.setText(name + (person.balance < 0 ? ": -$" : ": $") + (Math.abs(person.balance) / 100.0));
 			cbox.setChecked(checkedPeople.contains(name));
 			cbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 					public void onCheckedChanged (CompoundButton buttonView, boolean isChecked)
@@ -251,12 +251,14 @@ public class LunchFundActivity extends Activity
 	public void onUndo (MenuItem item)
 	{
 		pstate.undo();
+		checkedPeople.clear();
 		redraw();
 	}
 
 	public void onRedo (MenuItem item)
 	{
 		pstate.redo();
+		checkedPeople.clear();
 		redraw();
 	}
 
@@ -273,6 +275,7 @@ public class LunchFundActivity extends Activity
 			return; //TODO alert dialog
 		}
 		pstate.apply(new PersistentState.DeleteTransaction(person.name, person.email));
+		checkedPeople.clear();
 		redraw();
 	}
 }
