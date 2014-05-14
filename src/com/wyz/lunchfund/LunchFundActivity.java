@@ -9,6 +9,9 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.widget.*;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
@@ -41,12 +44,14 @@ public class LunchFundActivity extends Activity
 		redraw();
 	}
 
+	@Override
 	public void onConfigurationChanged (Configuration newConfig)
 	{
 		super.onConfigurationChanged(newConfig);
 		redraw();
 	}
 
+	@Override
 	protected void onPause ()
 	{
 		try {
@@ -60,6 +65,27 @@ public class LunchFundActivity extends Activity
 		super.onPause();
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu (Menu menu)
+	{
+		super.onCreateOptionsMenu(menu);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu (Menu menu)
+	{
+		if (!super.onPrepareOptionsMenu(menu))
+			return false;
+		menu.findItem(R.id.undo).setVisible(pstate.hasHistory());
+		menu.findItem(R.id.redo).setVisible(pstate.hasUndoHistory());
+		menu.findItem(R.id.email).setVisible(true);
+		menu.findItem(R.id.deletePerson).setVisible(checkedPeople.size() == 1);
+		return true;
+	}
+
 	private void redraw ()
 	{
 		Button button;
@@ -70,8 +96,6 @@ public class LunchFundActivity extends Activity
 		button.setEnabled(true);
 		button = (Button)findViewById(R.id.addperson);
 		button.setEnabled(true);
-		button = (Button)findViewById(R.id.undo);
-		button.setEnabled(pstate.hasHistory());
 
 		LinearLayout peoplelayout = (LinearLayout)findViewById(R.id.peoplelayout);
 		peoplelayout.removeAllViews();
@@ -224,13 +248,31 @@ public class LunchFundActivity extends Activity
 		alert.show();
 	}
 
-	public void onUndo (View view)
+	public void onUndo (MenuItem item)
 	{
 		pstate.undo();
 		redraw();
 	}
 
-	public void onEmail (View view)
+	public void onRedo (MenuItem item)
 	{
+		pstate.redo();
+		redraw();
+	}
+
+	public void onEmail (MenuItem item)
+	{
+	}
+
+	public void onDeletePerson (MenuItem item)
+	{
+		if (checkedPeople.size() != 1)
+			return;
+		PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
+		if (person == null || person.balance != 0) {
+			return; //TODO alert dialog
+		}
+		pstate.apply(new PersistentState.DeleteTransaction(person.name, person.email));
+		redraw();
 	}
 }

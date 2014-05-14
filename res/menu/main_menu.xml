@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:id="@+id/undo"
+		android:title="Undo"
+		android:onClick="onUndo" />
+	<item android:id="@+id/redo"
+		android:title="Redo"
+		android:onClick="onRedo" />
+	<item android:id="@+id/email"
+		android:title="Email History"
+		android:onClick="onEmail" />
+	<item android:id="@+id/deletePerson"
+		android:title="Delete Person"
+		android:onClick="onDeletePerson" />
+</menu>

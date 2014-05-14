@@ -134,6 +134,8 @@ public class PersistentState
 		{
 			if (!pstate.people.containsKey(name))
 				throw new RuntimeException("DeleteTransaction.apply(): no user " + name);
+			if (pstate.people.get(name).balance != 0)
+				throw new RuntimeException("DeleteTransaction.apply(): balance not 0 for " + name);
 			pstate.people.remove(name);
 		}
 		public void undo (PersistentState pstate)
@@ -218,6 +220,11 @@ public class PersistentState
 		return history.size() > 0;
 	}
 
+	public boolean hasUndoHistory ()
+	{
+		return undoHistory.size() > 0;
+	}
+
 	public Iterable<Person> listPeople ()
 	{
 		return people.values();
@@ -238,6 +245,11 @@ public class PersistentState
 			for (Transaction trans : history)
 				sb.append(trans.description() + "\n");
 		return sb.toString();
+	}
+
+	public Person getPerson (String name)
+	{
+		return people.get(name);
 	}
 
 	public void apply (Transaction trans)
