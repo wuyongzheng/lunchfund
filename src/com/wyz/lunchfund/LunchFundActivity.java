@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.widget.*;
 import android.view.View;
@@ -109,15 +110,17 @@ public class LunchFundActivity extends Activity
 		alert.setSingleChoiceItems(people, -1, new DialogInterface.OnClickListener() {
 				public void onClick (DialogInterface dialog, int which) {
 					lunchPayer = people[which];
+					dialog.dismiss();
+					onLunch2();
 				}
 			});
-		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
+/*		alert.setPositiveButton("Next", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 					if (lunchPayer != null)
 						onLunch2();
 				}
 			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+*/		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {}
 			});
 		alert.show();
@@ -126,8 +129,9 @@ public class LunchFundActivity extends Activity
 	public void onLunch2 ()
 	{
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-		alert.setTitle("Transfer 2/2: How much in total?");
+		alert.setTitle("Lunch 2/2: How much in total?");
 		final EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 		alert.setView(input);
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
