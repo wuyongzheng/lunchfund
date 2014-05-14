@@ -68,9 +68,9 @@ public class PersistentState
 		String [] arr = line.split("\t");
 		long date = Long.parseLong(arr[0]);
 		if (arr[1].equals("add")) {
-			return new AddTransaction(date, arr[2], arr[3]);
+			return new AddTransaction(date, arr[2], arr.length < 4 ? "" : arr[3]);
 		} else if (arr[1].equals("delete")) {
-			return new DeleteTransaction(date, arr[2], arr[3]);
+			return new DeleteTransaction(date, arr[2], arr.length < 4 ? "" : arr[3]);
 		} else if (arr[1].equals("transfer")) {
 			return new TransferTransaction(date, arr[2], arr[3], Integer.parseInt(arr[4]));
 		} else if (arr[1].equals("lunch")) {
