@@ -3,7 +3,9 @@ package com.wyz.lunchfund;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.InputType;
@@ -83,7 +85,9 @@ public class LunchFundActivity extends Activity
 			return false;
 		menu.findItem(R.id.undo).setVisible(pstate.hasHistory());
 		menu.findItem(R.id.redo).setVisible(pstate.hasUndoHistory());
-		menu.findItem(R.id.email).setVisible(true);
+		menu.findItem(R.id.emailHistory).setVisible(true);
+		menu.findItem(R.id.emailLog).setVisible(checkedPeople.size() == 1);
+		menu.findItem(R.id.changeEmail).setVisible(checkedPeople.size() == 1);
 		menu.findItem(R.id.deletePerson).setVisible(checkedPeople.size() == 1);
 		return true;
 	}
@@ -250,8 +254,60 @@ public class LunchFundActivity extends Activity
 		redraw();
 	}
 
-	public void onEmail (MenuItem item)
+	public void onEmailHistory (MenuItem item)
 	{
+		Intent i = new Intent(Intent.ACTION_SEND);
+		i.setType("message/rfc822");
+		i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund History");
+		i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(true));
+		try {
+			startActivity(Intent.createChooser(i, "Send mail..."));
+		} catch (ActivityNotFoundException x) {
+			Toast.makeText(getApplicationContext(), "There are no email clients installed", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	public void onEmailLog (MenuItem item)
+	{
+		if (checkedPeople.size() != 1)
+			return;
+		Intent i = new Intent(Intent.ACTION_SEND);
+		i.setType("message/rfc822");
+		PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
+		if (person == null)
+			return;
+		i.putExtra(Intent.EXTRA_EMAIL, new String[]{person.email});
+		i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund Log for " + person.name);
+		i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(false, person.name));
+		try {
+			startActivity(Intent.createChooser(i, "Send mail..."));
+		} catch (ActivityNotFoundException x) {
+			Toast.makeText(getApplicationContext(), "There are no email clients installed", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	public void onChangeEmail (MenuItem item)
+	{
+		if (checkedPeople.size() != 1)
+			return;
+		final PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
+		if (person == null)
+			return;
+
+		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		alert.setTitle("Change Email for " + person.name);
+		final EditText input = new EditText(this);
+		alert.setView(input);
+		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					pstate.changeEmail(person.name, input.getText().toString().trim());
+					redraw();
+				}
+			});
+		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
+			});
+		alert.show();
 	}
 
 	public void onDeletePerson (MenuItem item)
@@ -259,8 +315,11 @@ public class LunchFundActivity extends Activity
 		if (checkedPeople.size() != 1)
 			return;
 		PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
-		if (person == null || person.balance != 0) {
-			return; //TODO alert dialog
+		if (person == null)
+			return;
+		if (person.balance != 0) {
+			Toast.makeText(getApplicationContext(), "Can only delete 0-balance person", Toast.LENGTH_SHORT).show();
+			return;
 		}
 		pstate.apply(new PersistentState.DeleteTransaction(0, person.name, person.email));
 		checkedPeople.clear();

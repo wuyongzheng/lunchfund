@@ -99,6 +99,8 @@ public class PersistentState
 		public abstract void undo (PersistentState pstate);
 		public abstract String save ();
 		public abstract String description ();
+		public abstract int effectToPerson (String name);
+		public abstract void changeEmail (String name, String email);
 	}
 
 	public static class AddTransaction extends Transaction {
@@ -124,6 +126,8 @@ public class PersistentState
 		}
 		public String save () {return date + "\tadd\t" + name + "\t" + email;}
 		public String description () {return "add " + name + " <" + email + ">";}
+		public int effectToPerson (String name) {return 0;}
+		public void changeEmail (String name, String email) { if (name == this.name) this.email = email; }
 	}
 
 	public static class DeleteTransaction extends Transaction {
@@ -151,6 +155,8 @@ public class PersistentState
 		}
 		public String save () {return date + "\tdelete\t" + name + "\t" + email;}
 		public String description () {return "delete " + name + " <" + email + ">";}
+		public int effectToPerson (String name) {return 0;}
+		public void changeEmail (String name, String email) { if (name == this.name) this.email = email; }
 	}
 
 	public static class TransferTransaction extends Transaction {
@@ -177,7 +183,19 @@ public class PersistentState
 			pstate.people.get(to).balance += amount;
 		}
 		public String save () {return date + "\ttransfer\t" + from + "\t" + to + "\t" + amount;}
-		public String description () {return from + " gave $" + (amount/100.0) + " to " + to + " on " + DateFormat.getDateInstance().format(new Date(date));}
+		public String description () {
+			return from + " gave $" + (amount/100.0) +
+				" to " + to + " on " +
+				DateFormat.getDateInstance().format(new Date(date));}
+		public int effectToPerson (String name)
+		{
+			if (name.equals(from))
+				return amount;
+			if (name.equals(to))
+				return -amount;
+			return 0;
+		}
+		public void changeEmail (String name, String email) {}
 	}
 
 	public static class LunchTransaction extends Transaction {
@@ -198,7 +216,7 @@ public class PersistentState
 		public void apply (PersistentState pstate)
 		{
 			for (String eater : eaters)
-				pstate.people.get(eater).balance -= amount / eaters.length; //TODO round
+				pstate.people.get(eater).balance -= (int)(amount / (float)eaters.length);
 			pstate.people.get(payer).balance += amount;
 		}
 		public void undo (PersistentState pstate)
@@ -227,6 +245,20 @@ public class PersistentState
 				sb.append(" (" + remarks + ")");
 			return sb.toString();
 		}
+		public int effectToPerson (String name)
+		{
+			int balance = 0;
+			for (String p : eaters) {
+				if (name.equals(p)) {
+					balance -= (int)(amount / (float)eaters.length);
+					break;
+				}
+			}
+			if (name.equals(payer))
+				balance += amount;
+			return balance;
+		}
+		public void changeEmail (String name, String email) {}
 	}
 
 	public boolean hasHistory ()
@@ -261,6 +293,26 @@ public class PersistentState
 		return sb.toString();
 	}
 
+	public String showHistory (boolean reverse, String name)
+	{
+		StringBuilder sb = new StringBuilder();
+		int balance = 0;
+		for (Transaction trans : history) {
+			int delta = trans.effectToPerson(name);
+			if (delta == 0)
+				continue;
+			balance += delta;
+			if (reverse) {
+				sb.insert(0, trans.description() + "\n");
+				sb.insert(0, "Balance: " + balance / 100.0 + "\n");
+			} else {
+				sb.append(trans.description() + "\n");
+				sb.append("Balance: " + balance / 100.0 + "\n");
+			}
+		}
+		return sb.toString();
+	}
+
 	public Person getPerson (String name)
 	{
 		return people.get(name);
@@ -291,6 +343,20 @@ public class PersistentState
 		Transaction trans = undoHistory.pop();
 		trans.apply(this);
 		history.push(trans);
+		modified = true;
+	}
+
+	public void changeEmail (String name, String email)
+	{
+		for (Person person : people.values()) {
+			if (person.name == name) {
+				person.email = email;
+				break;
+			}
+		}
+		for (Transaction trans : history)
+			trans.changeEmail(name, email);
+		undoHistory.clear();
 		modified = true;
 	}
 }

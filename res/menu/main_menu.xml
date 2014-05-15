@@ -6,9 +6,15 @@
 	<item android:id="@+id/redo"
 		android:title="Redo"
 		android:onClick="onRedo" />
-	<item android:id="@+id/email"
+	<item android:id="@+id/emailHistory"
 		android:title="Email History"
-		android:onClick="onEmail" />
+		android:onClick="onEmailHistory" />
+	<item android:id="@+id/emailLog"
+		android:title="Email Log"
+		android:onClick="onEmailLog" />
+	<item android:id="@+id/changeEmail"
+		android:title="Change Email"
+		android:onClick="onChangeEmail" />
 	<item android:id="@+id/deletePerson"
 		android:title="Delete Person"
 		android:onClick="onDeletePerson" />
