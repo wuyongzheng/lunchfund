@@ -12,6 +12,7 @@ import android.widget.*;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.Window;
 import android.view.View;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
@@ -40,6 +41,7 @@ public class LunchFundActivity extends Activity
 			pstate = new PersistentState();
 		pstate.clearModified();
 
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.main);
 		redraw();
 	}
