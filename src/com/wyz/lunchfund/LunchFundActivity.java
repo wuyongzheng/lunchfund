@@ -86,7 +86,7 @@ public class LunchFundActivity extends Activity
 		menu.findItem(R.id.undo).setVisible(pstate.hasHistory());
 		menu.findItem(R.id.redo).setVisible(pstate.hasUndoHistory());
 		menu.findItem(R.id.emailHistory).setVisible(true);
-		menu.findItem(R.id.emailLog).setVisible(checkedPeople.size() == 1);
+		menu.findItem(R.id.emailLog).setVisible(true);
 		menu.findItem(R.id.changeEmail).setVisible(checkedPeople.size() == 1);
 		menu.findItem(R.id.deletePerson).setVisible(checkedPeople.size() == 1);
 		return true;
@@ -269,16 +269,28 @@ public class LunchFundActivity extends Activity
 
 	public void onEmailLog (MenuItem item)
 	{
-		if (checkedPeople.size() != 1)
+		if (checkedPeople.size() == 0)
 			return;
+
 		Intent i = new Intent(Intent.ACTION_SEND);
 		i.setType("message/rfc822");
-		PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
-		if (person == null)
-			return;
-		i.putExtra(Intent.EXTRA_EMAIL, new String[]{person.email});
-		i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund Log for " + person.name);
-		i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(false, person.name));
+		if (checkedPeople.size() == 1) {
+			PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
+			if (person == null)
+				return;
+			i.putExtra(Intent.EXTRA_EMAIL, new String[]{person.email});
+			i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund Log for " + person.name);
+			i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(false, person.name));
+		} else {
+			String[] rec = new String[checkedPeople.size()];
+			int j = 0;
+			for (String p : checkedPeople)
+				rec[j++] = pstate.getPerson(p).email;
+			i.putExtra(Intent.EXTRA_EMAIL, rec);
+			i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund Log");
+			i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(false, checkedPeople));
+		}
+
 		try {
 			startActivity(Intent.createChooser(i, "Send mail..."));
 		} catch (ActivityNotFoundException x) {

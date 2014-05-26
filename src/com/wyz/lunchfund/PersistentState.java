@@ -281,6 +281,7 @@ public class PersistentState
 		return people.keySet().toArray(new String[people.size()]);
 	}
 
+	/* global history */
 	public String showHistory (boolean reverse)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -293,6 +294,7 @@ public class PersistentState
 		return sb.toString();
 	}
 
+	/* personal history */
 	public String showHistory (boolean reverse, String name)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -309,6 +311,38 @@ public class PersistentState
 				sb.append(trans.description() + "\n");
 				sb.append("Balance: " + balance / 100.0 + "\n");
 			}
+		}
+		return sb.toString();
+	}
+
+	/* selected group history */
+	public String showHistory (boolean reverse, Set<String> selected)
+	{
+		StringBuilder sb = new StringBuilder();
+		for (Transaction trans : history) {
+			boolean hit = false;
+			for (String person : selected)
+				if (trans.effectToPerson(person) != 0) {
+					hit = true;
+					break;
+				}
+			if (hit == false)
+				continue;
+			if (reverse) {
+				sb.insert(0, trans.description() + "\n");
+			} else {
+				sb.append(trans.description() + "\n");
+			}
+		}
+		StringBuilder balance = new StringBuilder("Balance:\n");
+		for (String person : selected) {
+			Person p = people.get(person);
+			balance.append(p.name).append(": ").append(p.balance / 100.0).append("\n");
+		}
+		if (reverse) {
+			sb.insert(0, balance);
+		} else {
+			sb.append(balance);
 		}
 		return sb.toString();
 	}
