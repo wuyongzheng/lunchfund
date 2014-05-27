@@ -86,7 +86,6 @@ public class LunchFundActivity extends Activity
 		menu.findItem(R.id.undo).setVisible(pstate.hasHistory());
 		menu.findItem(R.id.redo).setVisible(pstate.hasUndoHistory());
 		menu.findItem(R.id.emailHistory).setVisible(true);
-		menu.findItem(R.id.emailLog).setVisible(true);
 		menu.findItem(R.id.changeEmail).setVisible(checkedPeople.size() == 1);
 		menu.findItem(R.id.deletePerson).setVisible(checkedPeople.size() == 1);
 		return true;
@@ -96,12 +95,10 @@ public class LunchFundActivity extends Activity
 	{
 		Button button;
 
-		button = (Button)findViewById(R.id.lunch);
-		button.setEnabled(checkedPeople.size() > 0);
-		button = (Button)findViewById(R.id.transfer);
-		button.setEnabled(true);
-		button = (Button)findViewById(R.id.addperson);
-		button.setEnabled(true);
+		((Button)findViewById(R.id.lunch)).setEnabled(checkedPeople.size() > 0);
+		((Button)findViewById(R.id.transfer)).setEnabled(true);
+		((Button)findViewById(R.id.email)).setEnabled(checkedPeople.size() > 0);
+		((Button)findViewById(R.id.addperson)).setEnabled(true);
 
 		LinearLayout peoplelayout = (LinearLayout)findViewById(R.id.peoplelayout);
 		peoplelayout.removeAllViews();
@@ -267,7 +264,7 @@ public class LunchFundActivity extends Activity
 		}
 	}
 
-	public void onEmailLog (MenuItem item)
+	public void onEmailLog (View view)
 	{
 		if (checkedPeople.size() == 0)
 			return;
