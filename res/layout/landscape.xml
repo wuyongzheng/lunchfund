@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
++______+____+
+|      |btns|
+|      +____+
+|person|logs|
+|      |    |
+|      |    |
++______+____+
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="horizontal"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent">
+	<ScrollView
+		android:layout_width="0dp"
+		android:layout_height="match_parent"
+		android:layout_weight="4"
+		android:layout_margin="5dp">
+		<LinearLayout
+			android:id="@+id/peoplelayout"
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+		</LinearLayout>
+	</ScrollView>
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="0dp"
+		android:layout_height="match_parent"
+		android:layout_weight="6"
+		android:layout_margin="5dp">
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content">
+			<Button
+				android:id="@+id/lunch"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Lunch"
+				android:onClick="onLunch"/>
+			<Button
+				android:id="@+id/transfer"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Transfer"
+				android:onClick="onTransfer"/>
+			<Button
+				android:id="@+id/email"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Email"
+				android:onClick="onEmailLog"/>
+			<Button
+				android:id="@+id/addperson"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="Add"
+				android:onClick="onAddPerson"/>
+		</LinearLayout>
+		<ScrollView
+			android:layout_width="match_parent"
+			android:layout_height="0dp"
+			android:layout_weight="1">
+			<TextView
+				android:id="@+id/logview"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" />
+		</ScrollView>
+	</LinearLayout>
+</LinearLayout>

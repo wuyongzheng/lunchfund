@@ -44,7 +44,10 @@ public class LunchFundActivity extends Activity
 		pstate.clearModified();
 
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.main);
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+			setContentView(R.layout.landscape);
+		else
+			setContentView(R.layout.main);
 		redraw();
 	}
 
@@ -52,6 +55,10 @@ public class LunchFundActivity extends Activity
 	public void onConfigurationChanged (Configuration newConfig)
 	{
 		super.onConfigurationChanged(newConfig);
+		if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE)
+			setContentView(R.layout.landscape);
+		else
+			setContentView(R.layout.main);
 		redraw();
 	}
 
