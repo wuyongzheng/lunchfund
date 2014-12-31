@@ -102,6 +102,7 @@ public class LunchFundActivity extends Activity
 	{
 		Button button;
 
+		((TextView)findViewById(R.id.numsel)).setText(checkedPeople.size() + "");
 		((Button)findViewById(R.id.lunch)).setEnabled(checkedPeople.size() > 0);
 		((Button)findViewById(R.id.transfer)).setEnabled(true);
 		((Button)findViewById(R.id.email)).setEnabled(checkedPeople.size() > 0);
@@ -284,7 +285,7 @@ public class LunchFundActivity extends Activity
 				return;
 			i.putExtra(Intent.EXTRA_EMAIL, new String[]{person.email});
 			i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund Log for " + person.name);
-			i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(false, person.name));
+			i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(true, person.name));
 		} else {
 			String[] rec = new String[checkedPeople.size()];
 			int j = 0;
@@ -292,7 +293,7 @@ public class LunchFundActivity extends Activity
 				rec[j++] = pstate.getPerson(p).email;
 			i.putExtra(Intent.EXTRA_EMAIL, rec);
 			i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund Log");
-			i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(false, checkedPeople));
+			i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(true, checkedPeople));
 		}
 
 		try {
