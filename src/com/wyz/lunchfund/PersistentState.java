@@ -271,9 +271,29 @@ public class PersistentState
 		return undoHistory.size() > 0;
 	}
 
-	public Iterable<Person> listPeople ()
+	private static class SortPersonByBalance implements Comparator<Person> {
+		private final boolean descending;
+		public SortPersonByBalance (boolean descending) {
+			this.descending = descending;
+		}
+		public int compare (Person p1, Person p2) {
+			return descending ? (p2.balance - p1.balance) : (p1.balance - p2.balance);
+		}
+	}
+
+	/* sortBy=1: by name
+	 * sortBy=2: by balance ascending */
+	public Iterable<Person> listPeople (int sortBy)
 	{
-		return people.values();
+		if (sortBy == 1) {
+			return people.values();
+		} else if (sortBy == 2) {
+			ArrayList<Person> list = new ArrayList<Person>(people.values());
+			Collections.sort(list, new SortPersonByBalance(false));
+			return list;
+		}
+		assert false;
+		return null;
 	}
 
 	public String[] listPeopleNames ()
