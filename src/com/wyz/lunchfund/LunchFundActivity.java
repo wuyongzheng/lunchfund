@@ -314,6 +314,8 @@ public class LunchFundActivity extends Activity
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle("Change Email for " + person.name);
 		final EditText input = new EditText(this);
+		input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+		input.setText(person.email);
 		alert.setView(input);
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {

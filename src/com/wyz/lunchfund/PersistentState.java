@@ -234,7 +234,7 @@ public class PersistentState
 			return sb.toString();
 		}
 		public String description () {
-			StringBuilder sb = new StringBuilder().append(payer).append(" payed $").append(amount/100.0).append(" for ");
+			StringBuilder sb = new StringBuilder().append(payer).append(" paid $").append(amount/100.0).append(" for ");
 			for (int i = 0; i < eaters.length - 2; i ++)
 				sb.append(eaters[i]).append(", ");
 			if (eaters.length >= 2)
