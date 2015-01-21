@@ -151,8 +151,10 @@ public class LunchFundActivity extends Activity
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 					String payer = spinnerPayer.getSelectedItem().toString();
-					if (payer.equals("Who Paied?"))
+					if (payer.equals("Who Paied?")) {
+						Toast.makeText(getApplicationContext(), "Error: Person not selected", Toast.LENGTH_LONG).show();
 						return;
+					}
 					Dialog thedialog = (Dialog)dialog;
 					String remarks = ((EditText)thedialog.findViewById(R.id.lunchRemarks)).getText().toString().trim();
 					String amountString = ((EditText)thedialog.findViewById(R.id.lunchAmount)).getText().toString().trim();
@@ -162,8 +164,10 @@ public class LunchFundActivity extends Activity
 					} catch (Exception x) {
 						Log.e("LunchFund", "onTransfer() ", x);
 					}
-					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
+					if (Math.abs(d) * 100 >= Integer.MAX_VALUE || (int)Math.round(d * 100) <= 0) {
+						Toast.makeText(getApplicationContext(), "Error: Amount must be positive", Toast.LENGTH_LONG).show();
 						return;
+					}
 					pstate.apply(new PersistentState.LunchTransaction(
 							0, payer, (int)Math.round(d * 100), remarks,
 							checkedPeople.toArray(new String[checkedPeople.size()])));
@@ -201,8 +205,10 @@ public class LunchFundActivity extends Activity
 				public void onClick(DialogInterface dialog, int id) {
 					String fromString = spinnerFrom.getSelectedItem().toString();
 					String toString = spinnerTo.getSelectedItem().toString();
-					if (fromString.equals("From:") || toString.equals("To:"))
+					if (fromString.equals("From:") || toString.equals("To:")) {
+						Toast.makeText(getApplicationContext(), "Error: Person not selected", Toast.LENGTH_LONG).show();
 						return;
+					}
 					String amountString = amountEdit.getText().toString();
 					double d = 0;
 					try {
@@ -210,8 +216,10 @@ public class LunchFundActivity extends Activity
 					} catch (Exception x) {
 						Log.e("LunchFund", "onTransfer() ", x);
 					}
-					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
+					if (Math.abs(d) * 100 >= Integer.MAX_VALUE || (int)Math.round(d * 100) <= 0) {
+						Toast.makeText(getApplicationContext(), "Error: Amount must be positive", Toast.LENGTH_LONG).show();
 						return;
+					}
 					pstate.apply(new PersistentState.TransferTransaction(
 							0, fromString, toString, (int)Math.round(d * 100)));
 					redraw();
