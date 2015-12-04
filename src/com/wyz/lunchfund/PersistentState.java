@@ -72,7 +72,9 @@ public class PersistentState
 		} else if (arr[1].equals("delete")) {
 			return new DeleteTransaction(date, arr[2], arr.length < 4 ? "" : arr[3]);
 		} else if (arr[1].equals("transfer")) {
-			return new TransferTransaction(date, arr[2], arr[3], Integer.parseInt(arr[4]));
+			return new TransferTransaction(date, arr[2], arr[3],
+					Integer.parseInt(arr[4]),
+					arr.length < 6 ? "" : arr[5]);
 		} else if (arr[1].equals("lunch")) {
 			String [] eaters = new String [arr.length - 5];
 			System.arraycopy(arr, 5, eaters, 0, eaters.length);
@@ -163,7 +165,8 @@ public class PersistentState
 		private String from;
 		private String to;
 		private int amount;
-		public TransferTransaction (long date, String from, String to, int amount)
+		private String remarks;
+		public TransferTransaction (long date, String from, String to, int amount, String remarks)
 		{
 			this.date = date == 0 ? System.currentTimeMillis() : date;
 			if (from.equals(to) || amount <= 0)
@@ -171,6 +174,7 @@ public class PersistentState
 			this.from = from;
 			this.to = to;
 			this.amount = amount;
+			this.remarks = remarks.length() == 0 ? "nothing" : remarks;
 		}
 		public void apply (PersistentState pstate)
 		{
@@ -182,11 +186,13 @@ public class PersistentState
 			pstate.people.get(from).balance -= amount;
 			pstate.people.get(to).balance += amount;
 		}
-		public String save () {return date + "\ttransfer\t" + from + "\t" + to + "\t" + amount;}
+		public String save () {return date + "\ttransfer\t" + from + "\t" + to + "\t" + amount + "\t" + remarks;}
 		public String description () {
 			return from + " gave $" + (amount/100.0) +
 				" to " + to + " on " +
-				DateFormat.getDateInstance().format(new Date(date));}
+				DateFormat.getDateInstance().format(new Date(date)) +
+				(remarks.equals("nothing") ? "" : " (" + remarks + ")");
+		}
 		public int effectToPerson (String name)
 		{
 			if (name.equals(from))

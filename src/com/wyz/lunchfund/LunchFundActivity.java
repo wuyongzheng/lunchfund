@@ -195,6 +195,7 @@ public class LunchFundActivity extends Activity
 		spinnerTo.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, peopleTo));
 		spinnerTo.setSelection(0);
 		final EditText amountEdit = (EditText)alertView.findViewById(R.id.transferAmount);
+		final EditText remarksEdit = (EditText)alertView.findViewById(R.id.transferRemarks);
 		alert.setView(alertView);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -213,7 +214,8 @@ public class LunchFundActivity extends Activity
 					if (d == 0 || Math.abs(d) * 100 >= Integer.MAX_VALUE)
 						return;
 					pstate.apply(new PersistentState.TransferTransaction(
-							0, fromString, toString, (int)Math.round(d * 100)));
+							0, fromString, toString, (int)Math.round(d * 100),
+							remarksEdit.getText().toString()));
 					redraw();
 				}
 			});

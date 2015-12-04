@@ -17,4 +17,10 @@
 		android:layout_height="wrap_content"
 		android:inputType="numberDecimal"
 		android:hint="Amount" />
+    <EditText
+		android:id="@+id/transferRemarks"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:inputType="text"
+		android:hint="Remarks (optional)" />
 </LinearLayout>
