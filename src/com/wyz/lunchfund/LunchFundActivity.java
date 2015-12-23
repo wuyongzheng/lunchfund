@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
+import android.content.ClipboardManager;
+import android.content.ClipData;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -19,6 +21,7 @@ import android.view.View;
 import java.io.FileNotFoundException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
@@ -43,7 +46,6 @@ public class LunchFundActivity extends Activity
 			pstate = new PersistentState();
 		pstate.clearModified();
 
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
 			setContentView(R.layout.landscape);
 		else
@@ -90,23 +92,23 @@ public class LunchFundActivity extends Activity
 	{
 		if (!super.onPrepareOptionsMenu(menu))
 			return false;
-		menu.findItem(R.id.undo).setVisible(pstate.hasHistory());
-		menu.findItem(R.id.redo).setVisible(pstate.hasUndoHistory());
-		menu.findItem(R.id.emailHistory).setVisible(true);
-		menu.findItem(R.id.changeEmail).setVisible(checkedPeople.size() == 1);
-		menu.findItem(R.id.deletePerson).setVisible(checkedPeople.size() == 1);
+		((TextView)(menu.findItem(R.id.numsel).getActionView())).setText(checkedPeople.size() + "");
+		menu.findItem(R.id.lunch).setEnabled(checkedPeople.size() > 0);
+		menu.findItem(R.id.transfer).setEnabled(true);
+		menu.findItem(R.id.email).setEnabled(checkedPeople.size() > 0);
+		menu.findItem(R.id.addperson).setEnabled(true);
+
+		menu.findItem(R.id.undo).setEnabled(pstate.hasHistory());
+		menu.findItem(R.id.redo).setEnabled(pstate.hasUndoHistory());
+		menu.findItem(R.id.exportToClipboard).setEnabled(true);
+		menu.findItem(R.id.mergeFromClipboard).setEnabled(true);
+		menu.findItem(R.id.changeEmail).setEnabled(checkedPeople.size() == 1);
 		return true;
 	}
 
 	private void redraw ()
 	{
-		Button button;
-
-		((TextView)findViewById(R.id.numsel)).setText(checkedPeople.size() + "");
-		((Button)findViewById(R.id.lunch)).setEnabled(checkedPeople.size() > 0);
-		((Button)findViewById(R.id.transfer)).setEnabled(true);
-		((Button)findViewById(R.id.email)).setEnabled(checkedPeople.size() > 0);
-		((Button)findViewById(R.id.addperson)).setEnabled(true);
+		invalidateOptionsMenu();
 
 		LinearLayout peoplelayout = (LinearLayout)findViewById(R.id.peoplelayout);
 		peoplelayout.removeAllViews();
@@ -131,7 +133,7 @@ public class LunchFundActivity extends Activity
 		((TextView)findViewById(R.id.logview)).setText(pstate.showHistory(true));
 	}
 
-	public void onLunch (View view)
+	public void onLunch (MenuItem mitem)
 	{
 		if (checkedPeople.size() == 0)
 			return;
@@ -180,7 +182,7 @@ public class LunchFundActivity extends Activity
 		alert.show();
 	}
 
-	public void onTransfer (View view)
+	public void onTransfer (MenuItem mitem)
 	{
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle("Transfer Money");
@@ -233,7 +235,7 @@ public class LunchFundActivity extends Activity
 		alert.show();
 	}
 
-	public void onAddPerson (View view)
+	public void onAddPerson (MenuItem mitem)
 	{
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		alert.setTitle("Add New Person");
@@ -269,20 +271,81 @@ public class LunchFundActivity extends Activity
 		redraw();
 	}
 
-	public void onEmailHistory (MenuItem item)
+	public void onExport (MenuItem item)
 	{
-		Intent i = new Intent(Intent.ACTION_SEND);
-		i.setType("message/rfc822");
-		i.putExtra(Intent.EXTRA_SUBJECT, "Lunch Fund History");
-		i.putExtra(Intent.EXTRA_TEXT, pstate.showHistory(true));
-		try {
-			startActivity(Intent.createChooser(i, "Send mail..."));
-		} catch (ActivityNotFoundException x) {
-			Toast.makeText(getApplicationContext(), "There are no email clients installed", Toast.LENGTH_SHORT).show();
+		if (!pstate.hasHistory())
+			Toast.makeText(this, "nothing to export", Toast.LENGTH_SHORT).show();
+		final ArrayList<String> optionStr = new ArrayList<String>();
+		final ArrayList<Integer> optionInt = new ArrayList<Integer>();
+		for (int i = 1; i <= pstate.historySize(); i *= 2) {
+			optionStr.add("" + i);
+			optionInt.add(i);
 		}
+		if (optionInt.get(optionInt.size()-1) == pstate.historySize()) {
+			optionStr.set(optionStr.size()-1, optionStr.get(optionStr.size()-1) + " (All)");
+		} else {
+			optionStr.add(pstate.historySize() + " (All)");
+			optionInt.add(pstate.historySize());
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("How many to export?");
+		final Spinner spinner = new Spinner(builder.getContext(), Spinner.MODE_DIALOG);
+		spinner.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, optionStr));
+		spinner.setSelection(0);
+		builder.setView(spinner);
+
+		builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					int pos = spinner.getSelectedItemPosition();
+					if (pos == spinner.INVALID_POSITION)
+						Toast.makeText(getApplicationContext(), "Export Canceled", Toast.LENGTH_SHORT).show();
+					String data = pstate.export(optionInt.get(pos));
+					ClipboardManager clipMan = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+					clipMan.setPrimaryClip(ClipData.newPlainText("text", data));
+					Toast.makeText(getApplicationContext(), "History exported to clipboard.", Toast.LENGTH_SHORT).show();
+				}
+			});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {}
+			});
+		builder.show();
 	}
 
-	public void onEmailLog (View view)
+	public void onMerge (MenuItem item)
+	{
+		ClipboardManager clipMan = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+		ClipData.Item citem = clipMan.getPrimaryClip().getItemAt(0);
+		String data = citem.getText().toString();
+		final PersistentState.MergeResult result = pstate.merge(data);
+		if (result.newPS == null) {
+			Toast.makeText(this, result.message, Toast.LENGTH_LONG).show();
+			return;
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Confirm Merge");
+		builder.setMessage(result.message);
+		builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					pstate = result.newPS;
+					try {
+						pstate.save(new OutputStreamWriter(openFileOutput("history.txt", MODE_PRIVATE), "UTF-8"));
+					} catch (Exception x) { throw new RuntimeException(x); }
+					pstate.clearModified();
+					checkedPeople.clear();
+					Toast.makeText(getApplicationContext(), "Log merged", Toast.LENGTH_SHORT).show();
+					redraw();
+				}
+			});
+		builder.setNegativeButton("Cancel", null);
+		//builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+		//		public void onClick(DialogInterface dialog, int id) {}
+		//	});
+		builder.show();
+	}
+
+	public void onEmailLog (MenuItem mitem)
 	{
 		if (checkedPeople.size() == 0)
 			return;
@@ -337,21 +400,5 @@ public class LunchFundActivity extends Activity
 				public void onClick(DialogInterface dialog, int id) {}
 			});
 		alert.show();
-	}
-
-	public void onDeletePerson (MenuItem item)
-	{
-		if (checkedPeople.size() != 1)
-			return;
-		PersistentState.Person person = pstate.getPerson(checkedPeople.iterator().next());
-		if (person == null)
-			return;
-		if (person.balance != 0) {
-			Toast.makeText(getApplicationContext(), "Can only delete 0-balance person", Toast.LENGTH_SHORT).show();
-			return;
-		}
-		pstate.apply(new PersistentState.DeleteTransaction(0, person.name, person.email));
-		checkedPeople.clear();
-		redraw();
 	}
 }
