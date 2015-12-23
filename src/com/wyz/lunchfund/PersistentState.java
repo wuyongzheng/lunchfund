@@ -99,7 +99,7 @@ public class PersistentState
 		}
 	}
 
-	public static abstract class Transaction {
+	private static abstract class Transaction {
 		protected long date; // Number of milliseconds since 1970 GMT. Same as Date.getTime() and System.currentTimeMillis()
 		public abstract void apply (PersistentState pstate);
 		public abstract void undo (PersistentState pstate);
@@ -111,7 +111,7 @@ public class PersistentState
 		}
 	}
 
-	public static class AddTransaction extends Transaction {
+	private static class AddTransaction extends Transaction {
 		private String name;
 		private String email;
 		public AddTransaction (long date, String name, String email)
@@ -137,7 +137,7 @@ public class PersistentState
 		public int effectToPerson (String name) {return 0;}
 	}
 
-	public static class TransferTransaction extends Transaction {
+	private static class TransferTransaction extends Transaction {
 		private String from;
 		private String to;
 		private int amount;
@@ -179,7 +179,7 @@ public class PersistentState
 		}
 	}
 
-	public static class LunchTransaction extends Transaction {
+	private static class LunchTransaction extends Transaction {
 		private String payer;
 		private int amount;
 		private String remarks;
@@ -241,7 +241,7 @@ public class PersistentState
 		}
 	}
 
-	public static class ChangeEmailTransaction extends Transaction {
+	private static class ChangeEmailTransaction extends Transaction {
 		private final String name;
 		private final String oldEmail;
 		private final String newEmail;
@@ -396,7 +396,7 @@ public class PersistentState
 		return people.get(name);
 	}
 
-	public void apply (Transaction trans)
+	private void apply (Transaction trans)
 	{
 		undoHistory.clear();
 		trans.apply(this);
@@ -424,7 +424,23 @@ public class PersistentState
 		modified = true;
 	}
 
-	public void changeEmail (String name, String newEmail)
+	public void performLunch (String payer, int amount, String remarks, String [] eaters)
+	{
+		apply(new LunchTransaction(0, payer, amount, remarks, eaters));
+	}
+
+	public void performTransfer (String from, String to, int amount, String remarks)
+	{
+		apply(new TransferTransaction(0, from, to, amount, remarks));
+	}
+
+	// how to handle conflict? not crach
+	public void performAddPerson (String name, String email)
+	{
+		apply(new AddTransaction(0, name, email));
+	}
+
+	public void performChangeEmail (String name, String newEmail)
 	{
 		if (!people.containsKey(name))
 			throw new RuntimeException("PersistentState.name person not found");

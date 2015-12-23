@@ -170,9 +170,8 @@ public class LunchFundActivity extends Activity
 						Toast.makeText(getApplicationContext(), "Error: Amount must be positive", Toast.LENGTH_LONG).show();
 						return;
 					}
-					pstate.apply(new PersistentState.LunchTransaction(
-							0, payer, (int)Math.round(d * 100), remarks,
-							checkedPeople.toArray(new String[checkedPeople.size()])));
+					pstate.performLunch(payer, (int)Math.round(d * 100), remarks,
+						checkedPeople.toArray(new String[checkedPeople.size()]));
 					redraw();
 				}
 			});
@@ -223,9 +222,8 @@ public class LunchFundActivity extends Activity
 						Toast.makeText(getApplicationContext(), "Error: Amount must be positive", Toast.LENGTH_LONG).show();
 						return;
 					}
-					pstate.apply(new PersistentState.TransferTransaction(
-							0, fromString, toString, (int)Math.round(d * 100),
-							remarksEdit.getText().toString()));
+					pstate.performTransfer(fromString, toString, (int)Math.round(d * 100),
+						remarksEdit.getText().toString());
 					redraw();
 				}
 			});
@@ -247,7 +245,7 @@ public class LunchFundActivity extends Activity
 					String email = ((EditText)d.findViewById(R.id.newPersonEmail)).getText().toString().trim();
 					if (name.length() == 0)
 						return;
-					pstate.apply(new PersistentState.AddTransaction(0, name, email));
+					pstate.performAddPerson(name, email);
 					redraw();
 				}
 			});
@@ -392,7 +390,7 @@ public class LunchFundActivity extends Activity
 		alert.setView(input);
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
-					pstate.changeEmail(person.name, input.getText().toString().trim());
+					pstate.performChangeEmail(person.name, input.getText().toString().trim());
 					redraw();
 				}
 			});
