@@ -3,6 +3,8 @@ package com.wyz.lunchfund;
 import android.util.Log;
 import android.util.Base64;
 import java.util.zip.CRC32;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.GZIPInputStream;
 import java.text.DateFormat;
 import java.io.*;
 import java.util.*;
@@ -431,7 +433,8 @@ public class PersistentState
 	}
 
 	/* export and merge format
-	   header: 'LF', number of unexported trans, CRC32 of whole log, exported trans.
+	   header: 'L0', number of unexported trans, CRC32 of whole log, exported trans.
+	   header: 'Lz', same as above, but gzipped
 	 */
 	public String export (int numExp)
 	{
@@ -458,7 +461,7 @@ public class PersistentState
 			assert ptr < trans.length;
 			byte [] data = new byte [2 + 2 + 4 + (trans.length - ptr)];
 			data[0] = 'L';
-			data[1] = 'F';
+			data[1] = '0';
 			assert numUnexp < 65536;
 			data[2] = (byte)(numUnexp >> 8);
 			data[3] = (byte)(numUnexp);
@@ -467,6 +470,20 @@ public class PersistentState
 			data[6] = (byte)(crc >> 8);
 			data[7] = (byte)(crc);
 			System.arraycopy(trans, ptr, data, 8, trans.length - ptr);
+
+			// Should we compress?
+			try {
+				ByteArrayOutputStream zdata = new ByteArrayOutputStream();
+				zdata.write('L');
+				zdata.write('z');
+				GZIPOutputStream zos = new GZIPOutputStream(zdata);
+				zos.write(data, 2, data.length - 2);
+				zos.close();
+				if (zdata.size() < data.length)
+					data = zdata.toByteArray();
+			} catch (IOException x) {
+				throw new RuntimeException(x);
+			}
 			return Base64.encodeToString(data, Base64.DEFAULT);
 		} catch (Exception x) {
 			throw new RuntimeException(x);
@@ -486,8 +503,27 @@ public class PersistentState
 		} catch (Exception x) {
 			return new MergeResult(null, "Invalid Data Format " + x);
 		}
-		if (bytes[0] != 'L' || bytes[1] != 'F')
+		if (bytes[0] == 'L' && bytes[1] == '0')
+			;
+		else if (bytes[0] == 'L' && bytes[1] == 'z') {
+			try {
+				ByteArrayInputStream zdata = new ByteArrayInputStream(bytes, 2, bytes.length - 2);
+				GZIPInputStream zis = new GZIPInputStream(zdata);
+				ByteArrayOutputStream pdata = new ByteArrayOutputStream();
+				pdata.write('L');
+				pdata.write('0');
+				while (true) {
+					int b = zis.read();
+					if (b == -1) break;
+					pdata.write(b);
+				}
+				bytes = pdata.toByteArray();
+			} catch (IOException x) {
+				throw new RuntimeException(x);
+			}
+		} else {
 			return new MergeResult(null, "Invalid Data Format");
+		}
 		int numUnexp = ((bytes[2] & 0xff) << 8) | (bytes[3] & 0xff);
 		if (numUnexp > history.size())
 			return new MergeResult(null, "Need to export more transactions to merge");
