@@ -501,8 +501,10 @@ public class PersistentState
 			((bytes[6] & 0xff) << 8) | (bytes[7] & 0xff);
 		CRC32 crc = new CRC32();
 		try { crc.update(sb.toString().getBytes("UTF-8")); } catch (UnsupportedEncodingException x) {}
-		if (crc.getValue() != crcExp)
+		if ((int)crc.getValue() != crcExp) {
+			Log.e("PersistentState", sb.toString());
 			return new MergeResult(null, "Conflict or Corrupt data. Try again with more transactions");
+		}
 
 		PersistentState ps2;
 		try {
@@ -546,6 +548,7 @@ public class PersistentState
 
 		// all done. generate merge message
 		sb = new StringBuilder();
+		sb.append("New Transactions:\n");
 		map.clear();
 		for (Transaction t : history) map.put(t.date, t);
 		for (Transaction t : ps3.history)
