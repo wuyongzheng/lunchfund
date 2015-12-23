@@ -175,9 +175,7 @@ public class LunchFundActivity extends Activity
 					redraw();
 				}
 			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
+		alert.setNegativeButton("Cancel", null);
 		alert.show();
 	}
 
@@ -227,9 +225,7 @@ public class LunchFundActivity extends Activity
 					redraw();
 				}
 			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
+		alert.setNegativeButton("Cancel", null);
 		alert.show();
 	}
 
@@ -249,17 +245,25 @@ public class LunchFundActivity extends Activity
 					redraw();
 				}
 			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
+		alert.setNegativeButton("Cancel", null);
 		alert.show();
 	}
 
 	public void onUndo (MenuItem item)
 	{
-		pstate.undo();
-		checkedPeople.clear();
-		redraw();
+		new AlertDialog.Builder(this)
+			.setIcon(android.R.drawable.ic_dialog_alert)
+			.setTitle("Confirm Undo")
+			.setMessage("Undo last operation?")
+			.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+					public void onClick (DialogInterface dialog, int which) {
+						pstate.undo();
+						checkedPeople.clear();
+						redraw();
+					}
+			})
+			.setNegativeButton("No", null)
+			.show();
 	}
 
 	public void onRedo (MenuItem item)
@@ -304,9 +308,7 @@ public class LunchFundActivity extends Activity
 					Toast.makeText(getApplicationContext(), "History exported to clipboard.", Toast.LENGTH_SHORT).show();
 				}
 			});
-		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
+		builder.setNegativeButton("Cancel", null);
 		builder.show();
 	}
 
@@ -337,9 +339,6 @@ public class LunchFundActivity extends Activity
 				}
 			});
 		builder.setNegativeButton("Cancel", null);
-		//builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-		//		public void onClick(DialogInterface dialog, int id) {}
-		//	});
 		builder.show();
 	}
 
@@ -394,9 +393,7 @@ public class LunchFundActivity extends Activity
 					redraw();
 				}
 			});
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {}
-			});
+		alert.setNegativeButton("Cancel", null);
 		alert.show();
 	}
 }
