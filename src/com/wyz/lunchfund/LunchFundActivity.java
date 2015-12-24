@@ -239,8 +239,14 @@ public class LunchFundActivity extends Activity
 					Dialog d = (Dialog)dialog;
 					String name = ((EditText)d.findViewById(R.id.newPersonName)).getText().toString().trim();
 					String email = ((EditText)d.findViewById(R.id.newPersonEmail)).getText().toString().trim();
-					if (name.length() == 0)
+					if (name.length() == 0) {
+						Toast.makeText(getApplicationContext(), "Error: no name specified", Toast.LENGTH_LONG).show();
 						return;
+					}
+					if (pstate.getPerson(name) != null) {
+						Toast.makeText(getApplicationContext(), "name already exists", Toast.LENGTH_LONG).show();
+						return;
+					}
 					pstate.performAddPerson(name, email);
 					redraw();
 				}
