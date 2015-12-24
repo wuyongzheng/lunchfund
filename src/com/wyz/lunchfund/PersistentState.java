@@ -325,7 +325,7 @@ public class PersistentState
 			ArrayList<Person> list = new ArrayList<Person>(people.values());
 			Collections.sort(list, new Comparator<Person>() {
 					public int compare (Person p1, Person p2) {
-						return freqs.get(p1.name).compareTo(freqs.get(p2.name));
+						return -freqs.get(p1.name).compareTo(freqs.get(p2.name));
 					}
 			});
 			return list;
