@@ -112,7 +112,7 @@ public class LunchFundActivity extends Activity
 
 		LinearLayout peoplelayout = (LinearLayout)findViewById(R.id.peoplelayout);
 		peoplelayout.removeAllViews();
-		for (PersistentState.Person person : pstate.listPeople(2)) {
+		for (PersistentState.Person person : pstate.listPeople(3)) {
 			final String name = person.name;
 			CheckBox cbox = new CheckBox(this);
 			cbox.setText(name + (person.balance < 0 ? ": -$" : ": $") + (Math.abs(person.balance) / 100.0));

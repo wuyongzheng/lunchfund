@@ -295,25 +295,39 @@ public class PersistentState
 		return undoHistory.size() > 0;
 	}
 
-	private static class SortPersonByBalance implements Comparator<Person> {
-		private final boolean descending;
-		public SortPersonByBalance (boolean descending) {
-			this.descending = descending;
-		}
-		public int compare (Person p1, Person p2) {
-			return descending ? (p2.balance - p1.balance) : (p1.balance - p2.balance);
-		}
-	}
-
 	/* sortBy=1: by name
-	 * sortBy=2: by balance ascending */
+	 * sortBy=2: by balance ascending
+	 * sortBy=3: frequent eaters goes first */
 	public Iterable<Person> listPeople (int sortBy)
 	{
 		if (sortBy == 1) {
 			return people.values();
 		} else if (sortBy == 2) {
 			ArrayList<Person> list = new ArrayList<Person>(people.values());
-			Collections.sort(list, new SortPersonByBalance(false));
+			Collections.sort(list, new Comparator<Person>() {
+					public int compare (Person p1, Person p2) {
+						return p1.balance - p2.balance;
+					}
+			});
+			return list;
+		} else if (sortBy == 3) {
+			final HashMap<String, Double> freqs = new HashMap<String, Double>();
+			for (String p : people.keySet()) freqs.put(p, 0.0);
+			double score = 1.0;
+			for (int i = history.size() - 1; i >= 0; i --) {
+				if (history.get(i) instanceof LunchTransaction) {
+					LunchTransaction t = (LunchTransaction)history.get(i);
+					for (String p : t.eaters)
+						freqs.put(p, freqs.get(p) + score);
+					score *= 0.9;
+				}
+			}
+			ArrayList<Person> list = new ArrayList<Person>(people.values());
+			Collections.sort(list, new Comparator<Person>() {
+					public int compare (Person p1, Person p2) {
+						return freqs.get(p1.name).compareTo(freqs.get(p2.name));
+					}
+			});
 			return list;
 		}
 		assert false;
