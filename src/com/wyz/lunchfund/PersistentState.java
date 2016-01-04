@@ -100,23 +100,26 @@ public class PersistentState
 	}
 
 	private static abstract class Transaction {
-		protected long date; // Number of milliseconds since 1970 GMT. Same as Date.getTime() and System.currentTimeMillis()
+		protected final long date; // Number of milliseconds since 1970 GMT. Same as Date.getTime() and System.currentTimeMillis()
 		public abstract void apply (PersistentState pstate);
 		public abstract void undo (PersistentState pstate);
 		public abstract String save ();
 		public abstract String description ();
 		public abstract int effectToPerson (String name);
+		public Transaction (long date) {
+			this.date = date == 0 ? System.currentTimeMillis() : date;
+		}
 		public boolean equals (Object o) {
 			return o instanceof Transaction ? ((Transaction)o).save().equals(save()) : false;
 		}
 	}
 
 	private static class AddTransaction extends Transaction {
-		private String name;
-		private String email;
+		private final String name;
+		private final String email;
 		public AddTransaction (long date, String name, String email)
 		{
-			this.date = date == 0 ? System.currentTimeMillis() : date;
+			super(date);
 			this.name = name;
 			this.email = email;
 		}
@@ -138,13 +141,13 @@ public class PersistentState
 	}
 
 	private static class TransferTransaction extends Transaction {
-		private String from;
-		private String to;
-		private int amount;
-		private String remarks;
+		private final String from;
+		private final String to;
+		private final int amount;
+		private final String remarks;
 		public TransferTransaction (long date, String from, String to, int amount, String remarks)
 		{
-			this.date = date == 0 ? System.currentTimeMillis() : date;
+			super(date);
 			if (from.equals(to) || amount <= 0)
 				throw new RuntimeException("Invalid parameter for TransferTransaction");
 			this.from = from;
@@ -180,31 +183,33 @@ public class PersistentState
 	}
 
 	private static class LunchTransaction extends Transaction {
-		private String payer;
-		private int amount;
-		private String remarks;
-		private String [] eaters;
+		private final String payer;
+		private final int amount;
+		private final String remarks;
+		private final String [] eaters;
+		private final int split;
 		public LunchTransaction (long date, String payer, int amount, String remarks, String [] eaters)
 		{
-			this.date = date == 0 ? System.currentTimeMillis() : date;
+			super(date);
 			if (eaters.length == 0 || amount <= 0)
 				throw new RuntimeException("Invalid parameter for LunchTransaction");
 			this.payer = payer;
 			this.amount = amount;
 			this.remarks = remarks.length() == 0 ? "nothing" : remarks;
 			this.eaters = eaters;
+			split = roundDiv(amount, eaters.length);
 		}
 		public void apply (PersistentState pstate)
 		{
 			for (String eater : eaters)
-				pstate.people.get(eater).balance -= (int)(amount / (float)eaters.length);
-			pstate.people.get(payer).balance += amount;
+				pstate.people.get(eater).balance -= split;
+			pstate.people.get(payer).balance += split * eaters.length;
 		}
 		public void undo (PersistentState pstate)
 		{
 			for (String eater : eaters)
-				pstate.people.get(eater).balance += amount / eaters.length;
-			pstate.people.get(payer).balance -= amount;
+				pstate.people.get(eater).balance += split;
+			pstate.people.get(payer).balance -= split * eaters.length;
 		}
 		public String save () {
 			StringBuilder sb = new StringBuilder().
@@ -231,13 +236,17 @@ public class PersistentState
 			int balance = 0;
 			for (String p : eaters) {
 				if (name.equals(p)) {
-					balance -= (int)(amount / (float)eaters.length);
+					balance -= split;
 					break;
 				}
 			}
 			if (name.equals(payer))
-				balance += amount;
+				balance += split * eaters.length;
 			return balance;
+		}
+		public static int roundDiv (int dividend, int divisor)
+		{
+			return (dividend + (divisor / 2)) / divisor;
 		}
 	}
 
@@ -247,7 +256,7 @@ public class PersistentState
 		private final String newEmail;
 		public ChangeEmailTransaction (long date, String name, String oldEmail, String newEmail)
 		{
-			this.date = date == 0 ? System.currentTimeMillis() : date;
+			super(date);
 			this.name = name;
 			this.oldEmail = oldEmail;
 			this.newEmail = newEmail;
